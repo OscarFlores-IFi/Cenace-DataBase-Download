@@ -9,7 +9,7 @@ Created on Fri Sep  4 10:46:32 2020
 #                                    Librerías necesarias para correr el código
 #===========================================================================================================
 import time
-from multiprocessing.pool import Pool
+# from multiprocessing.pool import Pool
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from os import cpu_count
@@ -189,30 +189,30 @@ def Create_ini(date_ = None):
         return Ini
 
     Inicial = ini(date_)
-    Hoy = date.today() + timedelta(days = 1)
-    periodos = int(np.ceil((Hoy - Inicial).days/7))
+    Fin = date.today() + timedelta(days = 1)
+    
+    periodos = int(np.ceil((Fin - Inicial).days/7))
     Fechas_ini = [(Inicial + timedelta(days=i*7)) for i in range(periodos)]
     return Fechas_ini
 
 
 #%%=========================================================================================================
-#                                        Descarga y Optimización de Archivos
+#                                        Descarga y limpieza de base de datos
 #===========================================================================================================
 t1 = time.time()
 # Se crea el data frame de pandas con las Columnas definidas en la sección de variables
-BaseDatos = pd.DataFrame(columns = Columnas)
-# Se almacena la fecha actual correspondiente al sistema y se agrega un día más (para lograr recoger los datos más
-# nuevos de los precios de nodos en el proceso MDA)
-Hoy = date.today() - timedelta(days = 1)
+BaseDatos = pd.DataFrame(columns = Columnas[:-2])
 
-Ini = Create_ini((2020,8,1)) #puede no tener argumentos # Create_ini()
+# Se descargan los precios desde Ini hasta hoy
+# Ini = Create_ini((2020,1,1)) #puede no tener argumentos # Create_ini()
+Ini = Create_ini() # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
+
 zona_sel = [ Zonas[10 * i : 10 * i + 10] for i in range(1 + len(Zonas)//10)]
 
 desc = [ruta_descarga(z,i) for i in Ini for z in zona_sel]
         
-#%%
+#%%                Descarga de base de datos
 t1 = time.time()
-
 
 processes = []
 with ThreadPoolExecutor(max_workers=cpu_count()) as executor:
@@ -222,35 +222,24 @@ with ThreadPoolExecutor(max_workers=cpu_count()) as executor:
 for task in as_completed(processes):
     print(task.result())
 
-print(f'Time taken: {time.time() - t1}')
+for proc in processes:
+    try:
+        proc.result()[0]
+        BaseDatos = BaseDatos.append(proc.result()[0][Columnas[:-2]], ignore_index=True)
+    except Exception:
+        pass
+print(f'Time elapsed: {time.time() - t1} seconds')
 
+#%%
+Renombrar(BaseDatos)
+Dia_Semana(BaseDatos)
+BaseDatos = Festivos(BaseDatos)
+print(len(BaseDatos))
 
-#%%=========================================================================================================
-#                                        Descarga y Optimización de Archivos
-#===========================================================================================================
-# for i in range(1 + len(Zonas)//10):
-#     zona_sel = Zonas[10 * i : 10 * i + 10]
-  
-#     for i in Ini:
-#         try:
-#             df = getDF([ruta_descarga(zona_sel,i)])
-#             Renombrar(df)
-#             Dia_Semana(df)
-#             df = Festivos(df)
-#             RenombrarInv(df)
-#             BaseDatos = BaseDatos.append(df[Columnas], ignore_index = True)
-#         except Exception:
-#             print('Fallo la descarga')
-#             break
-# print('Elapsed time: ' + str(np.ceil(t2-t1)) + ' seconds.' )
-
-# #%%
-
-
-# # Se renombran las columnas de la base de datos
-# Renombrar(BaseDatos)
-# # Se genera el archivo final en formato "csv"
-# BaseDatos.to_csv("BaseDatos.csv", index = False)
-
-# t2 = time.time()
-# print('Elapsed time: ' + str(np.round(t2-t1,4)) + ' seconds.')
+try:
+    BaseAntigua = pd.read_csv('BaseDatos.csv', index_col=0)
+    BaseDatos = BaseAntigua.append(BaseDatos)
+except:
+    pass
+print(len(BaseDatos))
+BaseAntigua.to_csv('BaseDatos.csv')
