@@ -33,14 +33,14 @@ Zonas = ["AGUASCALIENTES", "APATZINGAN", "CELAYA", "CIENEGA", "COLIMA", "FRESNIL
            "ZAMORA", "ZAPOTLAN"]
 
 # Se definen los nombres de las columnas recogidas de la llamada URL en formato JSON del Servicio Web de CENACE
-Columnas = ["fecha", "hora", "pz", "pz_cng", "pz_ene", "pz_per", "zona_carga", "Dia_de_la_semana", "Festivo"]
+Columnas = ["fecha", "hora", "pz", "pz_cng", "pz_ene", "pz_per", "zona_carga", "Mercado", "Dia_de_la_semana", "Festivo"]
 
 
 #%%=========================================================================================================
 #                                        Definición de Funciones Utilizadas
 #===========================================================================================================
 # Función generadora de enlaces URL's para el Servicio Web de CENACE
-def ruta_descarga(zona_sel, Inicial):
+def ruta_descarga(zona_sel, Inicial, Mercado):
     """Esta función se encarga de generar la ruta de descarga a partir del formato del Servicio Web de CENACE. Para
     hacer que dicha función trabaje, es necesario introducir una zona o selección de zonas (formato de arreglo) y la
     fecha inicial a partir de la cual se quieren comenzar a recoger los datos."""
@@ -68,7 +68,7 @@ def ruta_descarga(zona_sel, Inicial):
     # Sistema Interconectado Baja California Sur (BCS)
     sis_int = "SIN"
     # Proceso que se va a utilizar: MDA o MTR
-    proc = "MTR"
+    proc = Mercado # MDA / MTR 
     # Se juntan las variables anteriores en una sola ruta
     ruta = ruta + sis_int + "/" + proc + "/"
     # Se agrega la zona (o las zonas) a la ruta del URL. En caso de tener múltiples zonas, se agregan comas para separar
@@ -85,7 +85,6 @@ def ruta_descarga(zona_sel, Inicial):
     formato = "json"
     # Se crea el URL final de acceso al Servicio Web
     ruta = ruta + formato
-    print(ruta)
     return ruta
 
 # Función que permite extraer la información de la llamada al Servicio Web en formato JSON
@@ -118,19 +117,6 @@ def Renombrar(archivo_csv):
     archivo_csv.columns = [column.replace("fecha","Fecha") for column in archivo_csv.columns]
     archivo_csv.columns = [column.replace("hora","Hora") for column in archivo_csv.columns]
 
-# Esta función se encarga de remplazar los nombres de las columnas de la base de datos final a las columnas iniciales
-# de la llamada en JSON
-def RenombrarInv(archivo_csv):
-    """Esta función es inversa a la función 'Renombrar' y se encarga de regresar los nombres de las columnas originales.
-    Este cambio es necesario cuando se requiere añadir información nueva a la base de datos existente."""
-    archivo_csv.columns = [column.replace("Precio_Zonal","pz") for column in archivo_csv.columns]
-    archivo_csv.columns = [column.replace("Componente_Congestion","pz_cng") for column in archivo_csv.columns]
-    archivo_csv.columns = [column.replace("Componente_Energia","pz_ene") for column in archivo_csv.columns]
-    archivo_csv.columns = [column.replace("Componente_Perdidas","pz_per") for column in archivo_csv.columns]
-    archivo_csv.columns = [column.replace("Zona_de_Carga","zona_carga") for column in archivo_csv.columns]
-    archivo_csv.columns = [column.replace("Fecha","fecha") for column in archivo_csv.columns]
-    archivo_csv.columns = [column.replace("Hora",'hora') for column in archivo_csv.columns]
-
 # Esta función se encarga de añadir el día de la semana correspondiente a la fecha en la base de datos
 def Dia_Semana(archivo_csv):
     """Esta función se encarga de añadir el día de la semana correspondiente (Lunes, Martes, Miércoles, etc.)."""
@@ -151,7 +137,7 @@ def Festivos(archivo_csv):
     return archivo_csv
 
 
-def Create_ini(date_ = None):
+def Create_ini(Mercado, date_ = None):
     """
     Parameters
     ----------
@@ -166,29 +152,25 @@ def Create_ini(date_ = None):
         
 
     """
-    def ini(date_):
+    def ini(Mercado, date_):
         if date_:
             return date(date_[0],date_[1],date_[2])
         
         if os.path.exists("BaseDatos.csv"):
             # Si existe una base de datos se revisa la última fecha añadida y con ello se genera una nueva fecha para el ULR
             BaseDatos = pd.read_csv("BaseDatos.csv")
-            RenombrarInv(BaseDatos)
-            BaseDatos = BaseDatos[Columnas]
-            Ini = (BaseDatos["fecha"]).max()
+            Ini = (BaseDatos["Fecha"]).max()
             # El formato de fecha "AAAA-MM-DD" de la base de datos se transforma a formato de la librería "datetime" 
-            Ini = date(int(Ini[0:4]), int(Ini[5:7]), int(Ini[8:10])) + timedelta(days = 1)
+            return date(int(Ini[0:4]), int(Ini[5:7]), int(Ini[8:10])) + timedelta(days = 1)
         else:
             # Se crea la fecha del primer registro de CENACE con formato (año, mes, día) en caso de que no existan archivos
             # previos. Esto permite generar la base de datos desde la primera entrada
-            
-            # 27 de enero de 2017. MTR --> Ini = date(2017,1,27)
-            # 29 de enero de 2016. MDA --> Ini = date(2016,1,29)
-            Ini = date(2017,1,27)
-        # Se seleccionan 10 zonas para agregarlas al URL y posteriormente a la Base de Datos
-        return Ini
 
-    Inicial = ini(date_)
+            if Mercado == 'MDA':
+                return date(2016,1,29) # 29 de enero de 2016. MDA --> Ini = date(2016,1,29)
+            return date(2017,1,27) # 27 de enero de 2017. MTR --> Ini = date(2017,1,27)
+
+    Inicial = ini(Mercado, date_)
     Fin = date.today() + timedelta(days = 1)
     
     periodos = int(np.ceil((Fin - Inicial).days/7))
@@ -204,28 +186,36 @@ t1 = time.time()
 BaseDatos = pd.DataFrame(columns = Columnas[:-2])
 
 # Se descargan los precios desde Ini hasta hoy
-# Ini = Create_ini((2020,1,1)) #puede no tener argumentos # Create_ini()
-Ini = Create_ini() # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
+Ini = (2020,8,1) # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
+IniMDA = Create_ini('MDA', Ini) 
+IniMTR = Create_ini('MTR', Ini) # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
 
 zona_sel = [ Zonas[10 * i : 10 * i + 10] for i in range(1 + len(Zonas)//10)]
-
-desc = [ruta_descarga(z,i) for i in Ini for z in zona_sel]
-        
+ 
+descMDA = [ruta_descarga(z,i,'MDA') for i in IniMDA for z in zona_sel]
+descMTR = [ruta_descarga(z,i,'MTR') for i in IniMTR for z in zona_sel]
+desc = descMDA + descMTR
 #%%                Descarga de base de datos
 t1 = time.time()
 
 processes = []
-with ThreadPoolExecutor(max_workers=cpu_count()) as executor:
+with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
     for d in desc:
         processes.append(executor.submit(getDF, d))
 
 for task in as_completed(processes):
     print(task.result())
 
+tmp = 0
 for proc in processes:
     try:
-        proc.result()[0]
+        if tmp <= len(descMDA):
+            proc.result()[0]["Mercado"] = "MDA"
+        else:
+            proc.result()[0]["Mercado"] = "MTR"
+    
         BaseDatos = BaseDatos.append(proc.result()[0][Columnas[:-2]], ignore_index=True)
+        tmp += 1
     except Exception:
         pass
 print(f'Time elapsed: {time.time() - t1} seconds')
@@ -242,4 +232,4 @@ try:
 except:
     pass
 print(len(BaseDatos))
-BaseAntigua.to_csv('BaseDatos.csv')
+BaseDatos.to_csv('BaseDatos.csv')
