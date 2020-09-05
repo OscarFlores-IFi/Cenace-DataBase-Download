@@ -186,7 +186,7 @@ t1 = time.time()
 BaseDatos = pd.DataFrame(columns = Columnas[:-2])
 
 # Se descargan los precios desde Ini hasta hoy
-Ini = (2020,8,1) # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
+Ini = None # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
 IniMDA = Create_ini('MDA', Ini) 
 IniMTR = Create_ini('MTR', Ini) # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
 
