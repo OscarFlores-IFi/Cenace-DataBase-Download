@@ -199,8 +199,8 @@ desc = descMDA + descMTR
 t1 = time.time()
 
 processes = []
-# with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
-with ThreadPoolExecutor(max_workers = 32) as executor:
+with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
+    # with ThreadPoolExecutor(max_workers = 32) as executor:
     for d in desc:
         processes.append(executor.submit(getDF, d))
 
