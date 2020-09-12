@@ -7,6 +7,7 @@ Created on Fri Sep 11 18:06:41 2020
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 def load_data(filename):
     Data = pd.read_csv(filename,index_col = 0)
@@ -36,9 +37,9 @@ def join_mda_mtr(data):
     return Joined
 
 
-def mape(y_true, y_pred): 
+def percentual_error(y_true, y_pred): 
         y_true, y_pred = np.array(y_true), np.array(y_pred)
-        return np.mean(np.abs((y_true - y_pred) / y_true))*100
+        return np.abs((y_true - y_pred) / y_true)*100
 
 ##############################################################################
 filename='BaseDatos.csv'
@@ -50,14 +51,14 @@ data = Data.loc[(Data.Zona_de_Carga==zonas[20])]
 list_joined = [join_mda_mtr(Data.loc[(Data.Zona_de_Carga==i)]) for i in zonas]
 DataZonas = pd.concat(list_joined, keys=zonas)
 
+    
+    
+DataZonas['MAPE_Precio_Zonal'] = percentual_error(DataZonas.Precio_Zonal_MTR.values, DataZonas.Precio_Zonal_MDA.values)
 correlaciones = DataZonas.corr()
 
+plt.hist(DataZonas.Precio_Zonal_MDA, bins = 1000)
+plt.hist(DataZonas.Precio_Zonal_MTR, bins = 1000)
+plt.show()
 
-
-
-
-    
-    
-DataZonas['MAPE_Precio_Zonal'] = mape(DataZonas.Precio_Zonal_MTR, DataZonas.Precio_Zonal_MDA)
-DataZonas['MAPE_Congestion'] = mape(DataZonas.Componente_Congestion_MTR, DataZonas.Componente_Congestion_MDA)
-DataZonas['MAPE_Perdidas'] = mape(DataZonas.Componente_Perdidas_MTR, DataZonas.Componente_Perdidas_MDA)
+plt.hist(DataZonas.MAPE_Precio_Zonal.values, bins = 1000)
+plt.show()
