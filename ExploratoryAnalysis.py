@@ -6,7 +6,7 @@ Created on Fri Sep 11 18:06:41 2020
 """
 
 import pandas as pd
-
+import numpy as np
 
 def load_data(filename):
     Data = pd.read_csv(filename,index_col = 0)
@@ -35,6 +35,11 @@ def join_mda_mtr(data):
     Joined = mda.merge(mtr, on = common_cols)
     return Joined
 
+
+def mape(y_true, y_pred): 
+        y_true, y_pred = np.array(y_true), np.array(y_pred)
+        return np.mean(np.abs((y_true - y_pred) / y_true))*100
+
 ##############################################################################
 filename='BaseDatos.csv'
 Data = load_data(filename)
@@ -46,3 +51,13 @@ list_joined = [join_mda_mtr(Data.loc[(Data.Zona_de_Carga==i)]) for i in zonas]
 DataZonas = pd.concat(list_joined, keys=zonas)
 
 correlaciones = DataZonas.corr()
+
+
+
+
+
+    
+    
+DataZonas['MAPE_Precio_Zonal'] = mape(DataZonas.Precio_Zonal_MTR, DataZonas.Precio_Zonal_MDA)
+DataZonas['MAPE_Congestion'] = mape(DataZonas.Componente_Congestion_MTR, DataZonas.Componente_Congestion_MDA)
+DataZonas['MAPE_Perdidas'] = mape(DataZonas.Componente_Perdidas_MTR, DataZonas.Componente_Perdidas_MDA)
