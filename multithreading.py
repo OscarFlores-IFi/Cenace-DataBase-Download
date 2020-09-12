@@ -201,12 +201,18 @@ t1 = time.time()
 processes = []
 # with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
 with ThreadPoolExecutor(max_workers=32) as executor:
-
     for d in desc:
         processes.append(executor.submit(getDF, d))
 
+t2 = time.time()
+print('requests have been submited \n Time elapsed ' + str(t2-t1) + ' seconds')
+
 for task in as_completed(processes):
     print(task.result())
+
+t3 = time.time()
+print('requests have been received \n Time elapsed ' + str(t2-t1) + ' seconds')
+
 
 tmp = 0
 for proc in processes:
@@ -220,7 +226,8 @@ for proc in processes:
         tmp += 1
     except Exception:
         pass
-print(f'Time elapsed: {time.time() - t1} seconds')
+    
+
 
 #%%
 Renombrar(BaseDatos)
@@ -235,3 +242,9 @@ except:
     pass
 print(len(BaseDatos))
 BaseDatos.to_csv('BaseDatos.csv')
+
+t4 = time.time()
+print('data has been processed. \n Time elapsed ' + str(t2-t1) + ' seconds')
+    
+    
+print(f'Task finished. \n Time elapsed: {time.time() - t1} seconds')
