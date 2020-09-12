@@ -39,7 +39,7 @@ def join_mda_mtr(data):
 
 def percentual_error(y_true, y_pred): 
         y_true, y_pred = np.array(y_true), np.array(y_pred)
-        return np.abs((y_true - y_pred) / y_true)*100
+        return ((y_true - y_pred) / y_true)*100
 
 ##############################################################################
 filename='BaseDatos.csv'
@@ -62,3 +62,4 @@ plt.show()
 
 plt.hist(DataZonas.MAPE_Precio_Zonal.values, bins = 1000)
 plt.show()
+

@@ -211,7 +211,7 @@ for task in as_completed(processes):
     print(task.result())
 
 t3 = time.time()
-print('requests have been received \n Time elapsed ' + str(t2-t1) + ' seconds')
+print('requests have been received \n Time elapsed ' + str(t3-t2) + ' seconds')
 
 
 tmp = 0
@@ -244,7 +244,7 @@ print(len(BaseDatos))
 BaseDatos.to_csv('BaseDatos.csv')
 
 t4 = time.time()
-print('data has been processed. \n Time elapsed ' + str(t2-t1) + ' seconds')
+print('data has been processed. \n Time elapsed ' + str(t4-t3) + ' seconds')
     
     
-print(f'Task finished. \n Time elapsed: {time.time() - t1} seconds')
+print(f'Task finished. \n Time elapsed: {t4 - t1} seconds')
