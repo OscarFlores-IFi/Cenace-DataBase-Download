@@ -9,10 +9,11 @@ Created on Fri Sep  4 10:46:32 2020
 #                                    Librerías necesarias para correr el código
 #===========================================================================================================
 import time
+import warnings
 # from multiprocessing.pool import Pool
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from os import cpu_count
+# from os import cpu_count
 import os.path
 from datetime import date
 from datetime import timedelta
@@ -22,7 +23,7 @@ import pandas as pd
 import numpy as np
 
 
-
+warnings.simplefilter("ignore")
 #%%=========================================================================================================
 #                                        Definición de Variables Utilizadas
 #===========================================================================================================
@@ -233,18 +234,21 @@ for proc in processes:
 Renombrar(BaseDatos)
 Dia_Semana(BaseDatos)
 BaseDatos = Festivos(BaseDatos)
-print(len(BaseDatos))
+print("New data points: " + len(BaseDatos))
 
 try:
     BaseAntigua = pd.read_csv('BaseDatos.csv', index_col=0)
     BaseDatos = BaseAntigua.append(BaseDatos)
 except:
     pass
-print(len(BaseDatos))
+print("Total data points: " + len(BaseDatos))
 BaseDatos.to_csv('BaseDatos.csv')
 
 t4 = time.time()
 print('data has been processed. \n Time elapsed ' + str(t4-t3) + ' seconds')
     
     
-print(f'Task finished. \n Time elapsed: {t4 - t1} seconds')
+print(f'Task finished. \n Total time elapsed: {t4 - t1} seconds')
+
+
+# https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
