@@ -10,6 +10,8 @@ Created on Fri Sep  4 10:46:32 2020
 #===========================================================================================================
 import time
 import warnings
+import os
+import socket
 # from multiprocessing.pool import Pool
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import freeze_support
@@ -259,7 +261,7 @@ def main():
     print(f'Task finished. \n Total time elapsed: {t4 - t1} seconds')
 
 
-# https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
+    # https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
 
 if __name__ == "__main__":
     freeze_support()
