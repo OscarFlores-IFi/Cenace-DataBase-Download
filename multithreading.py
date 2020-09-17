@@ -12,6 +12,7 @@ import time
 import warnings
 # from multiprocessing.pool import Pool
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from multiprocessing import freeze_support
 
 # from os import cpu_count
 import os.path
@@ -21,20 +22,6 @@ import urllib, json
 
 import pandas as pd
 import numpy as np
-
-
-warnings.simplefilter("ignore")
-#%%=========================================================================================================
-#                                        Definición de Variables Utilizadas
-#===========================================================================================================
-# Se definen las zonas que se analizan/añaden a la base de datos. Estas zonas son de la región Occidental
-Zonas = ["AGUASCALIENTES", "APATZINGAN", "CELAYA", "CIENEGA", "COLIMA", "FRESNILLO", "GUADALAJARA", "IRAPUATO",
-           "IXMIQUILPAN", "JIQUILPAN", "LEON", "LOS-ALTOS", "MANZANILLO", "MATEHUALA", "MINAS", "MORELIA", "QUERETARO",
-           "SALVATIERRA", "SAN-JUAN-DEL-RIO", "SAN-LUIS-POTOSI", "TEPIC-VALLARTA", "URUAPAN", "ZACAPU", "ZACATECAS",
-           "ZAMORA", "ZAPOTLAN"]
-
-# Se definen los nombres de las columnas recogidas de la llamada URL en formato JSON del Servicio Web de CENACE
-Columnas = ["fecha", "hora", "pz", "pz_cng", "pz_ene", "pz_per", "zona_carga", "Mercado", "Dia_de_la_semana", "Festivo"]
 
 
 #%%=========================================================================================================
@@ -179,76 +166,106 @@ def Create_ini(Mercado, date_ = None):
     return Fechas_ini
 
 
-#%%=========================================================================================================
-#                                        Descarga y limpieza de base de datos
-#===========================================================================================================
-t1 = time.time()
-# Se crea el data frame de pandas con las Columnas definidas en la sección de variables
-BaseDatos = pd.DataFrame(columns = Columnas[:-2])
 
-# Se descargan los precios desde Ini hasta hoy
-Ini = None # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
-IniMDA = Create_ini('MDA', Ini) 
-IniMTR = Create_ini('MTR', Ini) # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
-
-zona_sel = [ Zonas[10 * i : 10 * i + 10] for i in range(1 + len(Zonas)//10)]
- 
-descMDA = [ruta_descarga(z,i,'MDA') for i in IniMDA for z in zona_sel]
-descMTR = [ruta_descarga(z,i,'MTR') for i in IniMTR for z in zona_sel]
-desc = descMDA + descMTR
-#%%                Descarga de base de datos
-t1 = time.time()
-
-processes = []
-# with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
-with ThreadPoolExecutor(max_workers=32) as executor:
-    for d in desc:
-        processes.append(executor.submit(getDF, d))
-
-t2 = time.time()
-print('requests have been submited \n Time elapsed ' + str(t2-t1) + ' seconds')
-
-for task in as_completed(processes):
-    print(task.result())
-
-t3 = time.time()
-print('requests have been received \n Time elapsed ' + str(t3-t2) + ' seconds')
-
-
-tmp = 0
-for proc in processes:
-    try:
-        if tmp <= len(descMDA):
-            proc.result()[0]["Mercado"] = "MDA"
-        else:
-            proc.result()[0]["Mercado"] = "MTR"
+def main():
+    #%%=========================================================================================================
+    #                                        Definición de Variables Utilizadas
+    #===========================================================================================================
+    # Se definen las zonas que se analizan/añaden a la base de datos. Estas zonas son de la región Occidental
+    Zonas = ["AGUASCALIENTES", "APATZINGAN", "CELAYA", "CIENEGA", "COLIMA", "FRESNILLO", "GUADALAJARA", "IRAPUATO",
+               "IXMIQUILPAN", "JIQUILPAN", "LEON", "LOS-ALTOS", "MANZANILLO", "MATEHUALA", "MINAS", "MORELIA", "QUERETARO",
+               "SALVATIERRA", "SAN-JUAN-DEL-RIO", "SAN-LUIS-POTOSI", "TEPIC-VALLARTA", "URUAPAN", "ZACAPU", "ZACATECAS",
+               "ZAMORA", "ZAPOTLAN"]
     
-        BaseDatos = BaseDatos.append(proc.result()[0][Columnas[:-2]], ignore_index=True)
-        tmp += 1
-    except Exception:
-        pass
-    
-
-
-#%%
-Renombrar(BaseDatos)
-Dia_Semana(BaseDatos)
-BaseDatos = Festivos(BaseDatos)
-print("New data points: " + len(BaseDatos))
-
-try:
-    BaseAntigua = pd.read_csv('BaseDatos.csv', index_col=0)
-    BaseDatos = BaseAntigua.append(BaseDatos)
-except:
-    pass
-print("Total data points: " + len(BaseDatos))
-BaseDatos.to_csv('BaseDatos.csv')
-
-t4 = time.time()
-print('data has been processed. \n Time elapsed ' + str(t4-t3) + ' seconds')
+    # Se definen los nombres de las columnas recogidas de la llamada URL en formato JSON del Servicio Web de CENACE
+    Columnas = ["fecha", "hora", "pz", "pz_cng", "pz_ene", "pz_per", "zona_carga", "Mercado", "Dia_de_la_semana", "Festivo"]
     
     
-print(f'Task finished. \n Total time elapsed: {t4 - t1} seconds')
+    #%%=========================================================================================================
+    #                                        Descarga y limpieza de base de datos
+    #===========================================================================================================
+    warnings.simplefilter("ignore")
+    
+    t1 = time.time()
+    # Se crea el data frame de pandas con las Columnas definidas en la sección de variables
+    BaseDatos = pd.DataFrame(columns = Columnas[:-2])
+    
+    # Se descargan los precios desde Ini hasta hoy
+    Ini = None # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
+    IniMDA = Create_ini('MDA', Ini) 
+    IniMTR = Create_ini('MTR', Ini) # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
+    
+    zona_sel = [ Zonas[10 * i : 10 * i + 10] for i in range(1 + len(Zonas)//10)]
+     
+    descMDA = [ruta_descarga(z,i,'MDA') for i in IniMDA for z in zona_sel]
+    descMTR = [ruta_descarga(z,i,'MTR') for i in IniMTR for z in zona_sel]
+    desc = descMDA + descMTR
+    #%%                Descarga de base de datos
+    t1 = time.time()
+    
+    processes = []
+    # with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
+        for d in desc:
+            processes.append(executor.submit(getDF, d))
+    
+    t2 = time.time()
+    print('requests have been submited \n Time elapsed ' + str(t2-t1) + ' seconds')
+    
+    for task in as_completed(processes):
+        print(task.result())
+    
+    t3 = time.time()
+    print('requests have been received \n Time elapsed ' + str(t3-t2) + ' seconds')
+    
+    
+    tmp = 0
+    for proc in processes:
+        try:
+            if tmp <= len(descMDA):
+                proc.result()[0]["Mercado"] = "MDA"
+            else:
+                proc.result()[0]["Mercado"] = "MTR"
+        
+            BaseDatos = BaseDatos.append(proc.result()[0][Columnas[:-2]], ignore_index=True)
+            tmp += 1
+        except Exception:
+            pass
+        
+    
+    
+    #%%
+    Renombrar(BaseDatos)
+    Dia_Semana(BaseDatos)
+    BaseDatos = Festivos(BaseDatos)
+    print("New data points: " + str(len(BaseDatos)))
+    
+    if len(BaseDatos) > 0:
+        try:
+            BaseAntigua = pd.read_csv('BaseDatos.csv', index_col=0)
+            BaseDatos = BaseAntigua.append(BaseDatos)
+        except:
+            pass
+        print("Total data points: " + str(len(BaseDatos)))
+        BaseDatos.to_csv('BaseDatos.csv')
+        
+        t4 = time.time()
+        print('data has been processed. \n Time elapsed ' + str(t4-t3) + ' seconds')
+    else:
+        t4 = time.time()        
+        print('No new data to be processed.')
+        
+   
+    print(f'Task finished. \n Total time elapsed: {t4 - t1} seconds')
 
 
 # https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
+
+if __name__ == "__main__":
+    freeze_support()
+    main()
+
+
+
+
+
