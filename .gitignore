@@ -126,3 +126,4 @@ dmypy.json
 
 # Big Database, not handled by github.
 DataBase.csv
+BaseDatos.csv
