@@ -11,13 +11,14 @@ Created on Fri Sep  4 10:46:32 2020
 import time
 import warnings
 import os
-import socket
-# from multiprocessing.pool import Pool
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from multiprocessing import freeze_support
-
-# from os import cpu_count
 import os.path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# import socket
+# from multiprocessing.pool import Pool
+# from multiprocessing import freeze_support
+# from os import cpu_count
+
 from datetime import date
 from datetime import timedelta
 import urllib, json
@@ -168,7 +169,7 @@ def Create_ini(Mercado, date_ = None):
     return Fechas_ini
 
 
-
+#%% Main
 def main():
     #%%=========================================================================================================
     #                                        Definición de Variables Utilizadas
@@ -264,8 +265,9 @@ def main():
     # https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
 
 if __name__ == "__main__":
-    freeze_support()
+    # freeze_support()
     main()
+    time.sleep(20)
 
 
 
