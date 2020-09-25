@@ -82,13 +82,13 @@ def ruta_descarga(zona_sel, Inicial, Mercado):
 def getDF(ruta):
     """Esta función se encarga de acceder a la información de Internet y extraer los datos."""
     try:
-        print('.')
         # Se genera una variable que almacena los datos de la llamada al URL
         data = json.loads(urllib.request.urlopen(ruta).read())
         # El JSON se utiliza como diccionario y se obtiene el "key" que contiene la información necesaria.
         resultados = {key: value for key, value in data.items() if key == "Resultados"}.get("Resultados")
         # Se hace de manera iterativa en caso de que sean más de una zona de carga y se agrega a un dataframe
         df = pd.concat([pd.DataFrame(pd.DataFrame(i)["Valores"].tolist()).join(pd.DataFrame(i)["zona_carga"]) for i in resultados])
+        print('.')
         return [df]
     except Exception:
         print('/')
