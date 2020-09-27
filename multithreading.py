@@ -21,7 +21,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from datetime import date
 from datetime import timedelta
-import urllib, json
+import urllib.request
+import json
 
 import pandas as pd
 import numpy as np
@@ -207,6 +208,7 @@ def main():
     #%%                Descarga de base de datos
     t1 = time.time()
     
+    print('Download has started, please wait. \n \'.\' = good request \n \'/\' = bad request')
     processes = []
     # with ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
     with ThreadPoolExecutor(max_workers=32) as executor:
@@ -252,6 +254,7 @@ def main():
             pass
         print("Total data points: " + str(len(BaseDatos)))
         BaseDatos.to_csv('BaseDatos.csv')
+        print('Data has been storaged in \'BaseDatos.csv\'')
         
         t4 = time.time()
         print('data has been processed. \n Time elapsed ' + str(t4-t3) + ' seconds')
