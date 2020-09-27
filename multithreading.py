@@ -90,7 +90,8 @@ def getDF(ruta):
         df = pd.concat([pd.DataFrame(pd.DataFrame(i)["Valores"].tolist()).join(pd.DataFrame(i)["zona_carga"]) for i in resultados])
         print('.')
         return [df]
-    except Exception:
+    except Exception as err:
+        print(err)
         print('/')
         return [[None]]
     
