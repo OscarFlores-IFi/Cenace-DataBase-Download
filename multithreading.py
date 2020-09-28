@@ -122,13 +122,16 @@ def Dia_Semana(archivo_csv):
 def Festivos(archivo_csv):
     """Esta función se encarga de agregar el día festivo, tanto en fecha como en qué día festivo."""
     ruta = r"Festivos.csv"
-    Fest = pd.read_csv(ruta)
-    Fest["Fecha"]= pd.to_datetime(Fest["Fecha"])
-    Fest["Fecha"] = Fest["Fecha"].dt.strftime("%Y-%m-%d")
-    Fest["Fecha"]= pd.to_datetime(Fest["Fecha"])
-    archivo_csv = pd.merge(archivo_csv, Fest, on = ["Fecha", "Zona_de_Carga"], how = "left")
-    return archivo_csv
-
+    try:
+        Fest = pd.read_csv(ruta)
+        Fest["Fecha"]= pd.to_datetime(Fest["Fecha"])
+        Fest["Fecha"] = Fest["Fecha"].dt.strftime("%Y-%m-%d")
+        Fest["Fecha"]= pd.to_datetime(Fest["Fecha"])
+        archivo_csv = pd.merge(archivo_csv, Fest, on = ["Fecha", "Zona_de_Carga"], how = "left")
+        print('Holydays\' column has been added to the Database')
+        return archivo_csv
+    except:
+        return archivo_csv
 
 def Create_ini(Mercado, date_ = None):
     """

@@ -10,7 +10,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+# dist/
 downloads/
 eggs/
 .eggs/
@@ -127,3 +127,5 @@ dmypy.json
 # Big Database, not handled by github.
 DataBase.csv
 BaseDatos.csv
+build/
+Database Backup/
