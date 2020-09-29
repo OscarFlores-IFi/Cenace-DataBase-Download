@@ -218,14 +218,12 @@ def main():
         for d in desc:
             processes.append(executor.submit(getDF, d))
     
-    t2 = time.time()
-    print('requests have been submited \n Time elapsed ' + str(t2-t1) + ' seconds')
     
     for task in as_completed(processes):
         print(task.result())
     
     t3 = time.time()
-    print('requests have been received \n Time elapsed ' + str(t3-t2) + ' seconds')
+    print('requests have been received \n Time elapsed ' + str(t3-t1) + ' seconds')
     
     
     tmp = 0
@@ -272,9 +270,10 @@ def main():
     # https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
 
 if __name__ == "__main__":
-    # freeze_support()
+    print('This process will download the full data base of the CENACE energy center. It will include the MDA and MTR prices and quotes. \n This process can take about 3 hours the first time it runs, depending on the server response times and the user\'s processor speed.')
+    tmp = input('Press enter key to continue')
     main()
-    time.sleep(20)
+    tmp = input('Press enter key to exit')
 
 
 
