@@ -129,3 +129,5 @@ DataBase.csv
 BaseDatos.csv
 build/
 Database Backup/
+*.exe
+dist/Festivos.csv
