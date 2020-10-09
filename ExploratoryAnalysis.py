@@ -7,10 +7,11 @@ Created on Fri Sep 11 18:06:41 2020
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 def load_data(filename):
-    Data = pd.read_csv(filename,index_col = 0)
+    Data = pd.read_csv(filename)
+    Data = Data.drop(Data.columns[0], axis=1)
     Data = Data.loc[Data.Hora<25]
     Data['Hora'] = Data['Hora']-1
     Data['fecha_hora'] = pd.to_datetime(pd.to_datetime(Data.Fecha,dayfirst=True) + pd.to_timedelta(Data.Hora, unit='h'),infer_datetime_format=True)
@@ -51,15 +52,16 @@ data = Data.loc[(Data.Zona_de_Carga==zonas[20])]
 list_joined = [join_mda_mtr(Data.loc[(Data.Zona_de_Carga==i)]) for i in zonas]
 DataZonas = pd.concat(list_joined, keys=zonas)
 
+DataZonas.to_csv('BaseDatosJ.csv')
     
     
-DataZonas['MAPE_Precio_Zonal'] = percentual_error(DataZonas.Precio_Zonal_MTR.values, DataZonas.Precio_Zonal_MDA.values)
-correlaciones = DataZonas.corr()
+# DataZonas['MAPE_Precio_Zonal'] = percentual_error(DataZonas.Precio_Zonal_MTR.values, DataZonas.Precio_Zonal_MDA.values)
+# correlaciones = DataZonas.corr()
 
-plt.hist(DataZonas.Precio_Zonal_MDA, bins = 1000)
-plt.hist(DataZonas.Precio_Zonal_MTR, bins = 1000)
-plt.show()
+# plt.hist(DataZonas.Precio_Zonal_MDA, bins = 1000)
+# plt.hist(DataZonas.Precio_Zonal_MTR, bins = 1000)
+# plt.show()
 
-plt.hist(DataZonas.MAPE_Precio_Zonal.values, bins = 1000)
-plt.show()
+# plt.hist(DataZonas.MAPE_Precio_Zonal.values, bins = 1000)
+# plt.show()
 
