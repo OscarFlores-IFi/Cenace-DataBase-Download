@@ -27,6 +27,7 @@ import json
 import pandas as pd
 import numpy as np
 
+from JoinDatabases import Join_Base
 
 #%%=========================================================================================================
 #                                        Definición de Funciones Utilizadas
@@ -173,6 +174,44 @@ def Create_ini(Mercado, date_ = None):
     Fechas_ini = [(Inicial + timedelta(days=i*7)) for i in range(periodos)]
     return Fechas_ini
 
+# def Join_Base(filename='BaseDatos.csv', into='BaseDatosJ.csv'):
+    
+#     def load_data(filename):
+#         Data = pd.read_csv(filename)
+#         Data = Data.drop(Data.columns[0], axis=1)
+#         Data = Data.loc[Data.Hora<25]
+#         Data['Hora'] = Data['Hora']-1
+#         Data['fecha_hora'] = pd.to_datetime(pd.to_datetime(Data.Fecha,dayfirst=True) + pd.to_timedelta(Data.Hora, unit='h'),infer_datetime_format=True)
+        
+#         Data = Data.drop(['Hora', 'Fecha'],axis=1)
+#         return Data
+    
+#     def join_mda_mtr(data):
+    
+#         mtr = data[data.Mercado=='MTR'].copy().drop('Mercado', axis=1)
+#         mtr.columns = ['Precio_Zonal_MTR', 'Componente_Congestion_MTR',
+#                 'Componente_Energia_MTR', 'Componente_Perdidas_MTR', 'Zona_de_Carga',
+#                 'Dia_de_la_semana', 'Festivo', 'fecha_hora']
+#         mda = data[data.Mercado=='MDA'].copy().drop('Mercado', axis=1)
+#         mda.columns = ['Precio_Zonal_MDA', 'Componente_Congestion_MDA',
+#                 'Componente_Energia_MDA', 'Componente_Perdidas_MDA', 'Zona_de_Carga',
+#                 'Dia_de_la_semana', 'Festivo', 'fecha_hora']
+        
+#         mda.set_index = 'fecha_hora'
+#         mtr.set_index = 'fecha_hora'
+        
+#         common_cols = ['Zona_de_Carga', 'Dia_de_la_semana', 'Festivo', 'fecha_hora']
+#         Joined = mda.merge(mtr, on = common_cols)
+#         return Joined
+
+
+#     Data = load_data(filename)
+#     zonas = Data.Zona_de_Carga.unique()    
+#     list_joined = [join_mda_mtr(Data.loc[(Data.Zona_de_Carga==i)]) for i in zonas]
+#     DataZonas = pd.concat(list_joined, keys=zonas)
+    
+#     DataZonas.to_csv(into)
+        
 
 #%% Main
 def main():
@@ -249,7 +288,8 @@ def main():
     
     if len(BaseDatos) > 0:
         try:
-            BaseAntigua = pd.read_csv('BaseDatos.csv', index_col=0)
+            BaseAntigua = pd.read_csv('BaseDatos.csv')
+            BaseAntigua = BaseAntigua.drop(BaseAntigua.columns[0], axis=1)
             BaseDatos = BaseAntigua.append(BaseDatos)
         except:
             pass
@@ -271,9 +311,17 @@ def main():
 
 if __name__ == "__main__":
     print('This process will download the full data base of the CENACE energy center. It will include the MDA and MTR prices and quotes. \n This process can take about 3 hours the first time it runs, depending on the server response times and the user\'s processor speed.')
-    tmp = input('Press enter key to continue')
+    tmp = input('Do you want to merge the full MDA and MTR Database into a single csv? [Y/N]:')
     main()
-    tmp = input('Press enter key to exit')
+    if tmp.lower() == 'y':
+        t1 = time.time()
+        Join_Base()
+        print('Time elapsed while joining database: ' + str(time.time() - t1) + ' seconds')
+    tmp2 = input('Press enter key to exit')
+    
+    # To make the executable (on Anaconda command prompt):
+    # open the <path> where the .py file is
+    # PyInstaller.exe --onefile multithreading.py
 
 
 

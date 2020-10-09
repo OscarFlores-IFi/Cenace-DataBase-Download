@@ -131,3 +131,4 @@ build/
 Database Backup/
 *.exe
 dist/Festivos.csv
+dist/BaseDatosJ.csv
