@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep  4 10:46:32 2020
@@ -26,8 +27,6 @@ import json
 
 import pandas as pd
 import numpy as np
-
-from JoinDatabases import Join_Base
 
 #%%=========================================================================================================
 #                                        Definición de Funciones Utilizadas
@@ -150,23 +149,26 @@ def Create_ini(Mercado, date_ = None):
 
     """
     def ini(Mercado, date_):
-        if date_:
+        if type(date_) is tuple :
             return date(date_[0],date_[1],date_[2])
         
-        if os.path.exists("BaseDatos.csv"):
-            # Si existe una base de datos se revisa la última fecha añadida y con ello se genera una nueva fecha para el ULR
-            BaseDatos = pd.read_csv("BaseDatos.csv")
-            Ini = (BaseDatos["Fecha"]).max()
-            # El formato de fecha "AAAA-MM-DD" de la base de datos se transforma a formato de la librería "datetime" 
-            return date(int(Ini[0:4]), int(Ini[5:7]), int(Ini[8:10])) + timedelta(days = 1)
+        if not date_:
+            if os.path.exists("BaseDatos.csv"):
+                # Si existe una base de datos se revisa la última fecha añadida y con ello se genera una nueva fecha para el ULR
+                BaseDatos = pd.read_csv("BaseDatos.csv")
+                Ini = (BaseDatos["Fecha"]).max()
+                # El formato de fecha "AAAA-MM-DD" de la base de datos se transforma a formato de la librería "datetime" 
+                return date(int(Ini[0:4]), int(Ini[5:7]), int(Ini[8:10])) + timedelta(days = 1)
+            else:
+                # Se crea la fecha del primer registro de CENACE con formato (año, mes, día) en caso de que no existan archivos
+                # previos. Esto permite generar la base de datos desde la primera entrada
+    
+                if Mercado == 'MDA':
+                    return date(2016,1,29) # 29 de enero de 2016. MDA --> Ini = date(2016,1,29)
+                return date(2017,1,27) # 27 de enero de 2017. MTR --> Ini = date(2017,1,27)
         else:
-            # Se crea la fecha del primer registro de CENACE con formato (año, mes, día) en caso de que no existan archivos
-            # previos. Esto permite generar la base de datos desde la primera entrada
-
-            if Mercado == 'MDA':
-                return date(2016,1,29) # 29 de enero de 2016. MDA --> Ini = date(2016,1,29)
-            return date(2017,1,27) # 27 de enero de 2017. MTR --> Ini = date(2017,1,27)
-
+            return date_
+            
     Inicial = ini(Mercado, date_)
     Fin = date.today() + timedelta(days = 1)
     
@@ -238,7 +240,7 @@ def main():
     BaseDatos = pd.DataFrame(columns = Columnas[:-2])
     
     # Se descargan los precios desde Ini hasta hoy
-    Ini = None # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
+    Ini = (date.today() - timedelta(1)) # (2020,1,1) / None # Tupla o None, de otra forma dará error. Si se especifíca una fecha, se descargarán los datos desde ella hasta el presente
     IniMDA = Create_ini('MDA', Ini) 
     IniMTR = Create_ini('MTR', Ini) # Ini = Create_ini((2020,1,1)) # Para descargar datos desde la fecha señalada hasta 'hoy'
     
@@ -278,46 +280,8 @@ def main():
         except Exception:
             pass
         
-    
-    
-    #%%
-    Renombrar(BaseDatos)
-    Dia_Semana(BaseDatos)
-    BaseDatos = Festivos(BaseDatos)
-    print("New data points: " + str(len(BaseDatos)))
-    
-    if len(BaseDatos) > 0:
-        try:
-            BaseAntigua = pd.read_csv('BaseDatos.csv')
-            BaseAntigua = BaseAntigua.drop(BaseAntigua.columns[0], axis=1)
-            BaseDatos = BaseAntigua.append(BaseDatos)
-        except:
-            pass
-        print("Total data points: " + str(len(BaseDatos)))
-        BaseDatos.to_csv('BaseDatos.csv')
-        print('Data has been storaged in \'BaseDatos.csv\'')
-        
-        t4 = time.time()
-        print('data has been processed. \n Time elapsed ' + str(t4-t3) + ' seconds')
-    else:
-        t4 = time.time()        
-        print('No new data to be processed.')
-        
-   
-    print(f'Task finished. \n Total time elapsed: {t4 - t1} seconds')
-
-
-    # https://stackoverflow.com/questions/28631288/concurrent-futures-works-well-in-command-line-not-when-compiled-with-pyinstal
-
 if __name__ == "__main__":
-    print('This process will download the full data base of the CENACE energy center. It will include the MDA and MTR prices and quotes. \n This process can take about 3 hours the first time it runs, depending on the server response times and the user\'s processor speed.')
-    tmp = input('Do you want to merge the full MDA and MTR Database into a single csv? [Y/N]:')
     main()
-    if tmp.lower() == 'y':
-        t1 = time.time()
-        Join_Base()
-        print('Time elapsed while joining database: ' + str(time.time() - t1) + ' seconds')
-    tmp2 = input('Press enter key to exit')
     
     # To make the executable (on Anaconda command prompt):
     # open the <path> where the .py file is
